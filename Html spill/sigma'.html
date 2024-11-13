@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Falling Ball</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #gameArea {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            border: 2px solid #333;
+            background-image: url('office.webp'); /* Add your background image URL */
+            background-size: cover;
+            background-position: center;
+        }
+        #ball {
+            position: absolute;
+            width: 46px; /* Increased size by 15% */
+            height: 46px;
+            top: 0;
+            background-image: url('balls.png'); /* Replace with your ball image path */
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        #paddle {
+            position: absolute;
+            width: 92px; /* Increased size by 15% */
+            height: 23px;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-image: url('mouth.png'); /* Replace with your paddle image path */
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        #score {
+            margin-top: 10px;
+            font-size: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameArea">
+        <div id="ball"></div>
+        <div id="paddle"></div>
+    </div>
+    <div id="score">Score: 0</div>
+    <audio id="backgroundMusic" src="Doors Elevator Music (5 minutes).mp3" loop></audio> <!-- Add your audio file URL here -->
+
+    <script>
+        const gameArea = document.getElementById("gameArea");
+        const ball = document.getElementById("ball");
+        const paddle = document.getElementById("paddle");
+        const scoreDisplay = document.getElementById("score");
+        const backgroundMusic = document.getElementById("backgroundMusic");
+        let score = 0;
+        let ballSpeed = 2;
+        let musicStarted = false;
+        const paddleSpeed = 15; // Speed of paddle movement in pixels per key press
+        let ballX, ballY;
+
+        function resetBall() {
+            ballY = 0;
+            ballX = Math.floor(Math.random() * (gameArea.clientWidth - ball.clientWidth));
+            ball.style.left = `${ballX}px`;
+            ball.style.top = `${ballY}px`;
+            ballSpeed += 0.1; // Increase speed slightly for difficulty
+        }
+
+        function moveBall() {
+            ballY += ballSpeed;
+            ball.style.top = `${ballY}px`;
+
+            // Check if ball hits the paddle
+            const paddleRect = paddle.getBoundingClientRect();
+            const ballRect = ball.getBoundingClientRect();
+
+            if (
+                ballRect.bottom >= paddleRect.top &&
+                ballRect.right >= paddleRect.left &&
+                ballRect.left <= paddleRect.right
+            ) {
+                score++;
+                scoreDisplay.textContent = `Score: ${score}`;
+                resetBall();
+            }
+
+            // Check if ball hits the bottom
+            if (ballY > gameArea.clientHeight) {
+                alert("Game Over! Final Score: " + score);
+                score = 0;
+                scoreDisplay.textContent = `Score: ${score}`;
+                ballSpeed = 2;
+                resetBall();
+            }
+
+            requestAnimationFrame(moveBall);
+        }
+
+        // Start game and music on first left/right arrow key press
+        document.addEventListener("keydown", (e) => {
+            if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && !musicStarted) {
+                backgroundMusic.play();
+                musicStarted = true;
+            }
+
+            // Move paddle with arrow keys
+            let paddleLeft = parseFloat(paddle.style.left) || (gameArea.clientWidth - paddle.clientWidth) / 2;
+
+            if (e.key === "ArrowLeft") {
+                paddleLeft = Math.max(0, paddleLeft - paddleSpeed);
+            }
+            if (e.key === "ArrowRight") {
+                paddleLeft = Math.min(gameArea.clientWidth - paddle.clientWidth, paddleLeft + paddleSpeed);
+            }
+            paddle.style.left = `${paddleLeft}px`;
+        });
+
+        resetBall();
+        moveBall();
+    </script>
+</body>
+</html>
